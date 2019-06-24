@@ -88,7 +88,7 @@ export default function run( tasks = [] ) {
             .pipe( $.if( isDev, $.changed( cfg.copy_files_dist ) ) )
             .pipe( gulp.dest( cfg.copy_files_dist ) )
             .on( 'end', () => {
-                endTask( 'clean' );
+                endTask( 'copy' );
             } );
     } ) );
 
