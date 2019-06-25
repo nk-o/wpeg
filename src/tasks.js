@@ -194,6 +194,7 @@ export default function run( tasks = [] ) {
 
         return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.if( isDev, $.changed( cfg.template_files_src ) ) )
             .pipe( $.replaceTask( {
                 patterns,
             } ) )
@@ -214,6 +215,7 @@ export default function run( tasks = [] ) {
 
         return gulp.src( cfg.correct_line_endings_files_src, cfg.correct_line_endings_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.if( isDev, $.changed( cfg.correct_line_endings_files_src ) ) )
             .pipe( $.lineEndingCorrector() )
             .pipe( gulp.dest( cfg.correct_line_endings_files_dist ) )
             .on( 'end', () => {
@@ -318,7 +320,7 @@ export default function run( tasks = [] ) {
 
         if ( cfg.watch_files ) {
             startTask( 'watch_copy' );
-            gulp.watch( cfg.watch_files, gulp.series( 'copy' ) );
+            gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings' ) );
         }
 
         if ( cfg.watch_js_files ) {
