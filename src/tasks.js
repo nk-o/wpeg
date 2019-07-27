@@ -185,7 +185,6 @@ export default function run( tasks = [] ) {
                 };
             } );
 
-
         if ( ! patterns.length ) {
             return null;
         }
