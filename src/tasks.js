@@ -5,6 +5,7 @@ import named from 'vinyl-named-with-path';
 import webpack from 'webpack-stream';
 import prettyHrtime from 'pretty-hrtime';
 import browserSync from 'browser-sync';
+browserSync = browserSync.create();
 
 import { getConfig } from './config.js';
 import { log, error } from './notices.js';
