@@ -57,6 +57,9 @@ const defaultConfig = {
     // ZIP files.
     zip_files: [],
 
+    // Browser Sync.
+    browser_sync: false,
+
     // Watch files.
     watch_files: '',
 

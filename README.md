@@ -14,9 +14,10 @@ const pkg = require( 'json-file' ).read( './package.json' ).data;
 const cfg = {};
 
 // Build Paths.
+cfg.name = 'lazy-blocks';
 cfg.src = './src';
 cfg.dist_root = './dist';
-cfg.dist = '{dist_root}/lazy-blocks';
+cfg.dist = '{dist_root}/{name}';
 
 // Template variables that will be automatically replaced.
 cfg.template_files_src = '{src}/**/*.{php,js,css}';
@@ -60,6 +61,13 @@ cfg.zip_files = [
         dist: '{dist_root}/lazy-blocks.zip',
     },
 ];
+
+// Browser Sync.
+cfg.browser_sync = {
+    proxy: '{name}.local',
+    host: '{name}.local',
+    open: 'external',
+};
 
 // Watch files.
 cfg.watch_files = [ '{src}/**/*', '!{src}/**/*.{php,jsx,js,scss}' ];

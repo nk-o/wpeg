@@ -4,6 +4,7 @@ import gulpLoadPlugins from 'gulp-load-plugins';
 import named from 'vinyl-named-with-path';
 import webpack from 'webpack-stream';
 import prettyHrtime from 'pretty-hrtime';
+import browserSync from 'browser-sync';
 
 import { getConfig } from './config.js';
 import { log, error } from './notices.js';
@@ -118,6 +119,7 @@ export default function run( tasks = [] ) {
                 suffix: '.min',
             } ) )
             .pipe( gulp.dest( cfg.compile_scss_files_dist ) )
+            .pipe( browserSync.stream() )
             .on( 'end', () => {
                 endTask( 'compile_scss' );
             } );
@@ -313,30 +315,55 @@ export default function run( tasks = [] ) {
         return gulp.series( ...zipTasks )( done );
     } ) );
 
-    // watch task.
-    gulp.task( 'watch', runStream( ( cfg ) => {
-        isDev = true;
+    let bsInited = false;
 
-        if ( cfg.watch_files ) {
-            startTask( 'watch_copy' );
-            gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings' ) );
+    // Browser Sync Init task.
+    gulp.task( 'bs_init', runStream( ( cfg, cb ) => {
+        if ( ! bsInited && cfg.browser_sync ) {
+            bsInited = true;
+            browserSync.init( cfg.browser_sync );
         }
 
-        if ( cfg.watch_js_files ) {
-            startTask( 'watch_compile_js' );
-            gulp.watch( cfg.watch_js_files, gulp.series( 'compile_js' ) );
-        }
-
-        if ( cfg.watch_jsx_files ) {
-            startTask( 'watch_compile_jsx' );
-            gulp.watch( cfg.watch_jsx_files, gulp.series( 'compile_jsx' ) );
-        }
-
-        if ( cfg.watch_scss_files ) {
-            startTask( 'watch_compile_scss' );
-            gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss' ) );
-        }
+        cb();
     } ) );
+
+    // Browser Sync Reload task.
+    gulp.task( 'bs_reload', runStream( ( cfg, cb ) => {
+        if ( bsInited ) {
+            browserSync.reload();
+        }
+        cb();
+    } ) );
+
+    browserSync.create();
+
+    // watch task.
+    gulp.task( 'watch', gulp.series(
+        'bs_init',
+        runStream( ( cfg ) => {
+            isDev = true;
+
+            if ( cfg.watch_files ) {
+                startTask( 'watch_copy' );
+                gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
+            }
+
+            if ( cfg.watch_js_files ) {
+                startTask( 'watch_compile_js' );
+                gulp.watch( cfg.watch_js_files, gulp.series( 'compile_js', 'bs_reload' ) );
+            }
+
+            if ( cfg.watch_jsx_files ) {
+                startTask( 'watch_compile_jsx' );
+                gulp.watch( cfg.watch_jsx_files, gulp.series( 'compile_jsx', 'bs_reload' ) );
+            }
+
+            if ( cfg.watch_scss_files ) {
+                startTask( 'watch_compile_scss' );
+                gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss' ) );
+            }
+        } ),
+    ) );
 
     gulp.series( ...tasks )();
 }
