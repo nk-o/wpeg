@@ -336,8 +336,6 @@ export default function run( tasks = [] ) {
         cb();
     } ) );
 
-    browserSync.create();
-
     // watch task.
     gulp.task( 'watch', gulp.series(
         'bs_init',
