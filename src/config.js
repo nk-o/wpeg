@@ -1,5 +1,5 @@
-import fs from 'fs';
-import stringTemplate from 'string-template';
+const fs = require( 'fs' );
+const stringTemplate = require( 'string-template' );
 
 /**
  * Default Config.
@@ -143,23 +143,24 @@ function templateConfig( variable, config ) {
     return variable;
 }
 
-export function getConfig() {
-    let config = {};
+module.exports = {
+    getConfig() {
+        let config = {};
 
-    // find config
-    const configPath = `${ process.cwd() }/wpeg.config.js`;
-    if ( fs.existsSync( configPath ) ) {
-        config = require( configPath );
-    }
+        // find config
+        const configPath = `${ process.cwd() }/wpeg.config.js`;
+        if ( fs.existsSync( configPath ) ) {
+            config = require( configPath );
+        }
 
-    config = templateConfig( {
-        ...defaultConfig,
-        ...config,
-    } );
+        config = templateConfig( {
+            ...defaultConfig,
+            ...config,
+        } );
 
-    return [ config ];
-}
-
-export function getWPEGConfig() {
-    return WPEGConfig;
-}
+        return [ config ];
+    },
+    getWPEGConfig() {
+        return WPEGConfig;
+    },
+};

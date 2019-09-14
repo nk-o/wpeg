@@ -1,15 +1,15 @@
-import gulp from 'gulp';
-import del from 'del';
-import gulpLoadPlugins from 'gulp-load-plugins';
-import named from 'vinyl-named-with-path';
-import webpack from 'webpack-stream';
-import prettyHrtime from 'pretty-hrtime';
+const gulp = require( 'gulp' );
+const del = require( 'del' );
+const gulpLoadPlugins = require( 'gulp-load-plugins' );
+const named = require( 'vinyl-named-with-path' );
+const webpack = require( 'webpack-stream' );
+const prettyHrtime = require( 'pretty-hrtime' );
 
 const browserSync = require( 'browser-sync' ).create();
 
-import { getConfig } from './config.js';
-import { log, error } from './notices.js';
-import webpackconfig from '../webpack.config.js';
+const { getConfig } = require( './config' );
+const { log, error } = require( './notices' );
+const webpackconfig = require( '../webpack.config' );
 
 const $ = gulpLoadPlugins();
 
@@ -54,7 +54,7 @@ function plumberErrorHandler( err ) {
     this.emit( 'end' );
 }
 
-export default function run( tasks = [] ) {
+module.exports = function run( tasks = [] ) {
     const configs = getConfig();
 
     // run streams for each of theme items (theme and plugins)
@@ -365,4 +365,4 @@ export default function run( tasks = [] ) {
     ) );
 
     gulp.series( ...tasks )();
-}
+};

@@ -1,3 +1,3 @@
-import { run } from './src/run.js';
+const run = require( './src/run' );
 
 run();

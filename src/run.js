@@ -1,10 +1,9 @@
-import meow from 'meow';
+const meow = require( 'meow' );
+const { getWPEGConfig } = require( './config' );
+const runTasks = require( './tasks' );
+const { error } = require( './notices' );
 
-import { getWPEGConfig } from './config';
-import runTasks from './tasks';
-import { error } from './notices.js';
-
-export function run() {
+module.exports = function run() {
     const {
         flags,
         help,
@@ -41,4 +40,4 @@ export function run() {
 
     // run tasks.
     runTasks( currentTasks );
-}
+};

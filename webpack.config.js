@@ -1,4 +1,4 @@
-import fs from 'fs';
+const fs = require( 'fs' );
 
 // find config
 let customConfig = false;
@@ -7,7 +7,7 @@ if ( fs.existsSync( customConfigPath ) ) {
     customConfig = require( customConfigPath );
 }
 
-export default function( isDev = false ) {
+module.exports = function( isDev = false ) {
     return {
         mode: isDev ? 'development' : 'production',
         module: {
@@ -34,4 +34,4 @@ export default function( isDev = false ) {
         },
         ...( customConfig || {} ),
     };
-}
+};
