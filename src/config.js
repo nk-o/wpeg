@@ -176,11 +176,6 @@ module.exports = {
                 config = require( configPath );
             }
 
-            // Add config unique name if doesn't exists.
-            if ( ! config.name && 1 < files.length ) {
-                config.name = name;
-            }
-
             configs.push( templateConfig( {
                 ...defaultConfig,
                 ...config,
