@@ -430,27 +430,30 @@ module.exports = function( tasks = [], config ) {
     // watch task.
     gulp.task( 'watch', gulp.series(
         'bs_init',
-        runStream( ( cfg ) => {
-            if ( cfg.watch_files ) {
-                startTask( 'watch_copy', cfg );
-                gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
-            }
+        () => {
+            runStream( ( cfg, cb ) => {
+                if ( cfg.watch_files ) {
+                    startTask( 'watch_copy', cfg );
+                    gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
+                }
 
-            if ( cfg.watch_js_files ) {
-                startTask( 'watch_compile_js', cfg );
-                gulp.watch( cfg.watch_js_files, gulp.series( 'compile_js', 'bs_reload' ) );
-            }
+                if ( cfg.watch_js_files ) {
+                    startTask( 'watch_compile_js', cfg );
+                    gulp.watch( cfg.watch_js_files, gulp.series( 'compile_js', 'bs_reload' ) );
+                }
 
-            if ( cfg.watch_jsx_files ) {
-                startTask( 'watch_compile_jsx', cfg );
-                gulp.watch( cfg.watch_jsx_files, gulp.series( 'compile_jsx', 'bs_reload' ) );
-            }
+                if ( cfg.watch_jsx_files ) {
+                    startTask( 'watch_compile_jsx', cfg );
+                    gulp.watch( cfg.watch_jsx_files, gulp.series( 'compile_jsx', 'bs_reload' ) );
+                }
 
-            if ( cfg.watch_scss_files ) {
-                startTask( 'watch_compile_scss', cfg );
-                gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss', 'compile_scss_rtl' ) );
-            }
-        } ),
+                if ( cfg.watch_scss_files ) {
+                    startTask( 'watch_compile_scss', cfg );
+                    gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss', 'compile_scss_rtl' ) );
+                }
+                cb();
+            } )();
+        }
     ) );
 
     gulp.series( ...tasks )();
