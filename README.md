@@ -93,10 +93,10 @@ module.exports = cfg;
 
 ## 🤫 Other options
 
-- `--config`          custom config, by default used: `--config="wpeg.config.js"`
+- `--config`          custom config, by default used automatic way. Custom example: `--config="wpeg.config.js"`
 - `-h`, `--help`      show usage information
 - `-v`, `--version`   show version info
 
 ## 😬 Example
 
-```$ npx wpeg -b -w```
+```$ npx wpeg --build --watch```

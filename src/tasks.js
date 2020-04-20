@@ -34,13 +34,13 @@ const logTexts = {
 
 const logHrTime = {};
 
-function startTask( name ) {
+function startTask( name, cfg ) {
     logHrTime[ name ] = process.hrtime();
-    log( 'Starting', `${ logTexts[ name ] || name }` );
+    log( 'Starting', `${ logTexts[ name ] || name }`, '', cfg ? cfg.name || '' : '' );
 }
-function endTask( name ) {
+function endTask( name, cfg ) {
     const time = logHrTime[ name ] ? prettyHrtime( process.hrtime( logHrTime[ name ] ) ) : '';
-    log( 'Finished', `${ logTexts[ name ] || name }`, time );
+    log( 'Finished', `${ logTexts[ name ] || name }`, time, cfg ? cfg.name || '' : '' );
 }
 
 /**
@@ -57,14 +57,6 @@ function plumberErrorHandler( err ) {
 module.exports = function( tasks = [], config ) {
     const configs = getConfig( config );
 
-    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
-    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
-    log( 'Config', `***** ${ ' '.repeat( config.length ) } *****` );
-    log( 'Config', `***** ${ config } *****` );
-    log( 'Config', `***** ${ ' '.repeat( config.length ) } *****` );
-    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
-    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
-
     // Is development.
     const isDev = -1 !== tasks.indexOf( 'watch' );
 
@@ -78,11 +70,16 @@ module.exports = function( tasks = [], config ) {
     }
 
     // clean dist folder.
-    gulp.task( 'clean', runStream( ( cfg ) => {
-        startTask( 'clean' );
+    gulp.task( 'clean', runStream( ( cfg, cb ) => {
+        if ( ! cfg.clean_files ) {
+            cb();
+            return null;
+        }
+
+        startTask( 'clean', cfg );
 
         return del( cfg.clean_files ).then( () => {
-            endTask( 'clean' );
+            endTask( 'clean', cfg );
         } );
     } ) );
 
@@ -93,14 +90,14 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'copy' );
+        startTask( 'copy', cfg );
 
         return gulp.src( cfg.copy_files_src, cfg.copy_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
             .pipe( $.if( isDev, $.changed( cfg.copy_files_dist ) ) )
             .pipe( gulp.dest( cfg.copy_files_dist ) )
             .on( 'end', () => {
-                endTask( 'copy' );
+                endTask( 'copy', cfg );
             } );
     } ) );
 
@@ -111,14 +108,14 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'remote_copy' );
+        startTask( 'remote_copy', cfg );
 
         return $.remoteSrc( cfg.remote_copy_files_src, cfg.remote_copy_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
             .pipe( $.if( isDev, $.changed( cfg.remote_copy_files_dist ) ) )
             .pipe( gulp.dest( cfg.remote_copy_files_dist ) )
             .on( 'end', () => {
-                endTask( 'remote_copy' );
+                endTask( 'remote_copy', cfg );
             } );
     } ) );
 
@@ -129,7 +126,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'compile_scss' );
+        startTask( 'compile_scss', cfg );
 
         return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -159,7 +156,7 @@ module.exports = function( tasks = [], config ) {
             // Browser Sync
             .pipe( browserSync.stream() )
             .on( 'end', () => {
-                endTask( 'compile_scss' );
+                endTask( 'compile_scss', cfg );
             } );
     } ) );
 
@@ -170,7 +167,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'compile_scss_rtl' );
+        startTask( 'compile_scss_rtl', cfg );
 
         return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -206,7 +203,7 @@ module.exports = function( tasks = [], config ) {
             // Browser Sync
             .pipe( browserSync.stream() )
             .on( 'end', () => {
-                endTask( 'compile_scss_rtl' );
+                endTask( 'compile_scss_rtl', cfg );
             } );
     } ) );
 
@@ -217,7 +214,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'compile_js' );
+        startTask( 'compile_js', cfg );
 
         return gulp.src( cfg.compile_js_files_src, cfg.compile_js_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -235,7 +232,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( gulp.dest( cfg.compile_js_files_dist ) )
 
             .on( 'end', () => {
-                endTask( 'compile_js' );
+                endTask( 'compile_js', cfg );
             } );
     } ) );
 
@@ -246,7 +243,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'compile_jsx' );
+        startTask( 'compile_jsx', cfg );
 
         return gulp.src( cfg.compile_jsx_files_src, cfg.compile_jsx_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -264,7 +261,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( gulp.dest( cfg.compile_jsx_files_dist ) )
 
             .on( 'end', () => {
-                endTask( 'compile_jsx' );
+                endTask( 'compile_jsx', cfg );
             } );
     } ) );
 
@@ -286,7 +283,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'template_files' );
+        startTask( 'template_files', cfg );
 
         return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -296,7 +293,7 @@ module.exports = function( tasks = [], config ) {
             } ) )
             .pipe( gulp.dest( cfg.template_files_dist ) )
             .on( 'end', () => {
-                endTask( 'template_files' );
+                endTask( 'template_files', cfg );
             } );
     } ) );
 
@@ -307,7 +304,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'correct_line_endings' );
+        startTask( 'correct_line_endings', cfg );
 
         return gulp.src( cfg.correct_line_endings_files_src, cfg.correct_line_endings_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -315,7 +312,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.lineEndingCorrector() )
             .pipe( gulp.dest( cfg.correct_line_endings_files_dist ) )
             .on( 'end', () => {
-                endTask( 'correct_line_endings' );
+                endTask( 'correct_line_endings', cfg );
             } );
     } ) );
 
@@ -326,7 +323,7 @@ module.exports = function( tasks = [], config ) {
             return null;
         }
 
-        startTask( 'translate_php' );
+        startTask( 'translate_php', cfg );
 
         return gulp.src( cfg.translate_php_files_src, cfg.translate_php_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
@@ -334,7 +331,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.wpPot( cfg.translate_php_options ) )
             .pipe( gulp.dest( cfg.translate_php_files_dist ) )
             .on( 'end', () => {
-                endTask( 'translate_php' );
+                endTask( 'translate_php', cfg );
             } );
     } ) );
 
@@ -362,12 +359,12 @@ module.exports = function( tasks = [], config ) {
 
     // ZIP task.
     gulp.task( 'zip', runStream( ( cfg, done ) => {
-        if ( ! cfg.zip_files ) {
+        if ( ! cfg.zip_files || ! cfg.zip_files.length ) {
             done();
             return null;
         }
 
-        startTask( 'zip' );
+        startTask( 'zip', cfg );
 
         const zipTasks = cfg.zip_files.map( ( zipData ) => ( cb ) => {
             let gulpSrc = gulp.src;
@@ -403,7 +400,7 @@ module.exports = function( tasks = [], config ) {
         } );
 
         zipTasks.push( ( cb ) => {
-            endTask( 'zip' );
+            endTask( 'zip', cfg );
             cb();
         } );
 
@@ -433,28 +430,26 @@ module.exports = function( tasks = [], config ) {
     // watch task.
     gulp.task( 'watch', gulp.series(
         'bs_init',
-        runStream( ( cfg, cb ) => {
+        runStream( ( cfg ) => {
             if ( cfg.watch_files ) {
-                startTask( 'watch_copy' );
+                startTask( 'watch_copy', cfg );
                 gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
             }
 
             if ( cfg.watch_js_files ) {
-                startTask( 'watch_compile_js' );
+                startTask( 'watch_compile_js', cfg );
                 gulp.watch( cfg.watch_js_files, gulp.series( 'compile_js', 'bs_reload' ) );
             }
 
             if ( cfg.watch_jsx_files ) {
-                startTask( 'watch_compile_jsx' );
+                startTask( 'watch_compile_jsx', cfg );
                 gulp.watch( cfg.watch_jsx_files, gulp.series( 'compile_jsx', 'bs_reload' ) );
             }
 
             if ( cfg.watch_scss_files ) {
-                startTask( 'watch_compile_scss' );
+                startTask( 'watch_compile_scss', cfg );
                 gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss', 'compile_scss_rtl' ) );
             }
-
-            cb();
         } ),
     ) );
 

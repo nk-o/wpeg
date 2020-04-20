@@ -2,17 +2,21 @@ const chalk = require( 'chalk' );
 const strftime = require( 'strftime' );
 
 function run( ...args ) {
+    // find non-empty args
+    const resultArgs = args.filter( ( val ) => !! val );
+
     // eslint-disable-next-line
     console.log(
         `[${ chalk.gray( strftime( '%H:%M:%S' ) ) }]`,
-        ...args
+        ...resultArgs
     );
 }
 
 module.exports = {
-    log( prefix, text, more ) {
+    log( prefix, text, more, namespace ) {
         run(
             chalk.cyan( `${ prefix }: ` ),
+            namespace ? chalk.magenta( `[${ namespace }] ` ) : '',
             text ? chalk.blue( text ) : '',
             more ? chalk.cyan( more ) : ''
         );

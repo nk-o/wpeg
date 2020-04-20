@@ -97,14 +97,14 @@ const WPEGConfig = {
 
         🤫  Other options
 
-            --config        custom config, by default used: --config="wpeg.config.js"
+            --config        custom config, by default used automatic way. Custom example: \`--config="wpeg.config.js"\`
             --clean         clean dist folder
             --help          show usage information
             --version       print version info
 
         😬  Example
 
-            $ npx wpeg -b -w
+            $ npx wpeg --build --watch
     `,
     flags: {
         build: {
@@ -126,7 +126,7 @@ const WPEGConfig = {
 
         config: {
             type: 'string',
-            default: 'wpeg.config.js',
+            default: 'auto',
         },
     },
 };
@@ -150,22 +150,44 @@ function templateConfig( variable, config ) {
 }
 
 module.exports = {
-    getConfig( fileName = 'wpeg.config.js' ) {
-        let config = {};
+    getConfig( fileName = 'auto' ) {
+        const files = [];
+        const configs = [];
 
-        // find config
-        const configPath = `${ process.cwd() }/${ fileName }`;
-        if ( fs.existsSync( configPath ) ) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require
-            config = require( configPath );
+        // Automatic parse configs.
+        if ( 'auto' === fileName ) {
+            fs.readdirSync( process.cwd() ).forEach( ( name ) => {
+                if ( /wpeg.config.*.js/g.test( name ) ) {
+                    files.push( name );
+                }
+            } );
+        } else {
+            files.push( fileName );
         }
 
-        config = templateConfig( {
-            ...defaultConfig,
-            ...config,
+        // Parse all configs.
+        files.forEach( ( name ) => {
+            let config = {};
+
+            // find config
+            const configPath = `${ process.cwd() }/${ name }`;
+            if ( fs.existsSync( configPath ) ) {
+                // eslint-disable-next-line global-require, import/no-dynamic-require
+                config = require( configPath );
+            }
+
+            // Add config unique name if doesn't exists.
+            if ( ! config.name && 1 < files.length ) {
+                config.name = name;
+            }
+
+            configs.push( templateConfig( {
+                ...defaultConfig,
+                ...config,
+            } ) );
         } );
 
-        return [ config ];
+        return configs;
     },
     getWPEGConfig() {
         return WPEGConfig;
