@@ -51,6 +51,7 @@
     "meow": "^6.1.0",
     "pretty-hrtime": "^1.0.3",
     "sass-loader": "^8.0.2",
+    "spinnies": "^0.5.1",
     "strftime": "^0.10.0",
     "string-template": "^1.0.0",
     "style-loader": "^1.1.4",

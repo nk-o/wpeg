@@ -1,36 +1,24 @@
 const chalk = require( 'chalk' );
 const strftime = require( 'strftime' );
 
-function run( ...args ) {
-    // find non-empty args
-    const resultArgs = args.filter( ( val ) => !! val );
+function time() {
+    return `[${ chalk.gray( strftime( '%H:%M:%S' ) ) }]`;
+}
 
+function run( text, showTime = true ) {
     // eslint-disable-next-line
     console.log(
-        `[${ chalk.gray( strftime( '%H:%M:%S' ) ) }]`,
-        ...resultArgs
+        showTime ? time() : '',
+        text
     );
 }
 
 module.exports = {
-    log( prefix, text, more, namespace ) {
-        run(
-            chalk.cyan( `${ prefix }: ` ),
-            namespace ? chalk.magenta( `[${ namespace }] ` ) : '',
-            text ? chalk.blue( text ) : '',
-            more ? chalk.cyan( more ) : ''
-        );
-    },
-    notice( text ) {
-        run(
-            chalk.cyan( 'Notice: ' ),
-            chalk.blue( text )
-        );
+    time,
+    log( text, showTime = true ) {
+        run( text, showTime );
     },
     error( text ) {
-        run(
-            chalk.cyan( 'Error: ' ),
-            chalk.red( text )
-        );
+        run( chalk.cyan( 'Error: ' ) + chalk.red( text ) );
     },
 };

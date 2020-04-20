@@ -11,6 +11,7 @@ if ( fs.existsSync( customConfigPath ) ) {
 module.exports = function( isDev = false ) {
     return {
         mode: isDev ? 'development' : 'production',
+        stats: 'minimal',
         module: {
             rules: [
                 {
