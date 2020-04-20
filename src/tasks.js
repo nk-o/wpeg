@@ -71,7 +71,7 @@ module.exports = function( tasks = [], config ) {
     // run streams for each of theme items (theme and plugins)
     function runStream( func ) {
         return ( done ) => {
-            const dynamicTasks = configs.map( ( data ) => () => func( data, done ) );
+            const dynamicTasks = configs.map( ( data ) => ( cb ) => func( data, cb ) );
 
             gulp.series( ...dynamicTasks )( done );
         };
