@@ -18,6 +18,11 @@ const defaultConfig = {
     copy_files_src_opts: { nodir: true },
     copy_files_dist: '{dist}',
 
+    // Copy Remote files.
+    remote_copy_files_src: '',
+    remote_copy_files_src_opts: { nodir: true },
+    remote_copy_files_dist: '{dist}',
+
     // Compile SCSS files.
     compile_scss_files_src: '',
     compile_scss_files_src_opts: {},

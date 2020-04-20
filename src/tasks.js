@@ -85,8 +85,9 @@ module.exports = function( tasks = [], config ) {
     } ) );
 
     // copy to dist.
-    gulp.task( 'copy', runStream( ( cfg ) => {
+    gulp.task( 'copy', runStream( ( cfg, cb ) => {
         if ( ! cfg.copy_files_src || ! cfg.copy_files_dist ) {
+            cb();
             return null;
         }
 
@@ -102,8 +103,9 @@ module.exports = function( tasks = [], config ) {
     } ) );
 
     // remote copy to dist.
-    gulp.task( 'remote_copy', runStream( ( cfg ) => {
+    gulp.task( 'remote_copy', runStream( ( cfg, cb ) => {
         if ( ! cfg.remote_copy_files_src || ! cfg.remote_copy_files_dist ) {
+            cb();
             return null;
         }
 
