@@ -14,7 +14,7 @@ module.exports = function( isDev = false ) {
         module: {
             rules: [
                 {
-                    test: /(\.jsx)$/,
+                    test: /\.(jsx|js)$/i,
                     loader: 'babel-loader',
                 }, {
                     test: /\.scss$/,
@@ -33,6 +33,6 @@ module.exports = function( isDev = false ) {
                 },
             ],
         },
-        ...( customConfig || {} ),
+        ...( 'function' === typeof customConfig ? customConfig( isDev ) : ( customConfig || {} ) ),
     };
 };
