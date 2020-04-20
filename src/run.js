@@ -20,7 +20,8 @@ module.exports = function() {
 
     // prepare tasks list.
     const currentTasks = [];
-    Object.keys( flags ).forEach( ( flag ) => {
+    const allowedTasks = [ 'clean', 'build', 'watch', 'zip' ];
+    allowedTasks.forEach( ( flag ) => {
         if ( cli.flags && cli.flags[ flag ] ) {
             currentTasks.push( flag );
         }
@@ -40,5 +41,5 @@ module.exports = function() {
     } );
 
     // run tasks.
-    runTasks( currentTasks );
+    runTasks( currentTasks, cli.flags.config );
 };

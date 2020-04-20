@@ -88,6 +88,7 @@ const WPEGConfig = {
 
         🤫  Other options
 
+            --config        custom config, by default used: --config="wpeg.config.js"
             --clean         clean dist folder
             --help          show usage information
             --version       print version info
@@ -113,6 +114,11 @@ const WPEGConfig = {
         clean: {
             type: 'boolean',
         },
+
+        config: {
+            type: 'string',
+            default: 'wpeg.config.js',
+        },
     },
 };
 
@@ -135,11 +141,11 @@ function templateConfig( variable, config ) {
 }
 
 module.exports = {
-    getConfig() {
+    getConfig( fileName = 'wpeg.config.js' ) {
         let config = {};
 
         // find config
-        const configPath = `${ process.cwd() }/wpeg.config.js`;
+        const configPath = `${ process.cwd() }/${ fileName }`;
         if ( fs.existsSync( configPath ) ) {
             // eslint-disable-next-line global-require, import/no-dynamic-require
             config = require( configPath );

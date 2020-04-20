@@ -19,6 +19,7 @@ const logTexts = {
     build: 'Build',
     clean: 'Clean Dist',
     copy: 'Copy Files',
+    remote_copy: 'Copy Remote Files',
     compile_scss: 'SCSS Compiler',
     compile_js: 'JS Compiler',
     compile_jsx: 'JSX Compiler',
@@ -54,8 +55,16 @@ function plumberErrorHandler( err ) {
     this.emit( 'end' );
 }
 
-module.exports = function( tasks = [] ) {
-    const configs = getConfig();
+module.exports = function( tasks = [], config ) {
+    const configs = getConfig( config );
+
+    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
+    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
+    log( 'Config', `***** ${ ' '.repeat( config.length ) } *****` );
+    log( 'Config', `***** ${ config } *****` );
+    log( 'Config', `***** ${ ' '.repeat( config.length ) } *****` );
+    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
+    log( 'Config', `******${ '*'.repeat( config.length ) }******` );
 
     // run streams for each of theme items (theme and plugins)
     function runStream( func ) {
@@ -89,6 +98,23 @@ module.exports = function( tasks = [] ) {
             .pipe( gulp.dest( cfg.copy_files_dist ) )
             .on( 'end', () => {
                 endTask( 'copy' );
+            } );
+    } ) );
+
+    // remote copy to dist.
+    gulp.task( 'remote_copy', runStream( ( cfg ) => {
+        if ( ! cfg.remote_copy_files_src || ! cfg.remote_copy_files_dist ) {
+            return null;
+        }
+
+        startTask( 'remote_copy' );
+
+        return $.remoteSrc( cfg.remote_copy_files_src, cfg.remote_copy_files_src_opts )
+            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.if( isDev, $.changed( cfg.remote_copy_files_dist ) ) )
+            .pipe( gulp.dest( cfg.remote_copy_files_dist ) )
+            .on( 'end', () => {
+                endTask( 'remote_copy' );
             } );
     } ) );
 
@@ -246,6 +272,7 @@ module.exports = function( tasks = [] ) {
         },
         'clean',
         'copy',
+        'remote_copy',
         'compile_scss',
         'compile_js',
         'compile_jsx',

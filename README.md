@@ -93,6 +93,7 @@ module.exports = cfg;
 
 ## 🤫 Other options
 
+- `--config`          custom config, by default used: `--config="wpeg.config.js"`
 - `-h`, `--help`      show usage information
 - `-v`, `--version`   show version info
 
