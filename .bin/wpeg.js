@@ -2,4 +2,4 @@
 
 'use strict';
 
-require( '../index.js' );
+require( '../src/run.js' )();

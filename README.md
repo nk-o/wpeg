@@ -90,8 +90,6 @@ module.exports = cfg;
 - `-b`, `--build`     build theme/plugin
 - `-w`, `--watch`     start watch changes in files and automatically run 'build' after changes
 - `-z`, `--zip`       prepare ZIP file after build
-- `-f`, `--ftp`       upload ZIP on FTP
-- `-s`, `--ssh`       unpack uploaded ZIP
 
 ## 🤫 Other options
 

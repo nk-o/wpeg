@@ -1,9 +1,10 @@
 const meow = require( 'meow' );
+
 const { getWPEGConfig } = require( './config' );
 const runTasks = require( './tasks' );
 const { error } = require( './notices' );
 
-module.exports = function run() {
+module.exports = function() {
     const {
         flags,
         help,
@@ -33,7 +34,7 @@ module.exports = function run() {
 
     // node errors.
     process.on( 'uncaughtException', ( err ) => {
-        error( 'UncaughtException: ' + err.message );
+        error( `UncaughtException: ${ err.message }` );
         error( err.stack );
         process.exit( 1 );
     } );

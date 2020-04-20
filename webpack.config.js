@@ -4,6 +4,7 @@ const fs = require( 'fs' );
 let customConfig = false;
 const customConfigPath = `${ process.cwd() }/webpack.config.js`;
 if ( fs.existsSync( customConfigPath ) ) {
+    // eslint-disable-next-line global-require, import/no-dynamic-require
     customConfig = require( customConfigPath );
 }
 

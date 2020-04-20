@@ -1,11 +1,11 @@
 const chalk = require( 'chalk' );
 const strftime = require( 'strftime' );
 
-function run() {
+function run( ...args ) {
     // eslint-disable-next-line
     console.log(
         `[${ chalk.gray( strftime( '%H:%M:%S' ) ) }]`,
-        ...arguments
+        ...args
     );
 }
 

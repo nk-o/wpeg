@@ -1,4 +1,5 @@
 const fs = require( 'fs' );
+
 const stringTemplate = require( 'string-template' );
 
 /**
@@ -84,8 +85,6 @@ const WPEGConfig = {
             -b, --build     build theme/plugin
             -w, --watch     start watch changes in files and automatically run 'build' after changes
             -z, --zip       prepare ZIP file after build
-            [not working yet] -f, --ftp       upload ZIP on FTP
-            [not working yet] -s, --ssh       unpack uploaded ZIP
 
         🤫  Other options
 
@@ -110,14 +109,6 @@ const WPEGConfig = {
             type: 'boolean',
             alias: 'z',
         },
-        ftp: {
-            type: 'boolean',
-            alias: 'f',
-        },
-        ssh: {
-            type: 'boolean',
-            alias: 's',
-        },
 
         clean: {
             type: 'boolean',
@@ -130,13 +121,13 @@ function templateConfig( variable, config ) {
         config = variable;
     }
 
-    if ( variable !== null && ( typeof variable === 'object' || Array.isArray( variable ) ) ) {
+    if ( null !== variable && ( 'object' === typeof variable || Array.isArray( variable ) ) ) {
         Object.keys( variable ).forEach( ( k ) => {
             variable[ k ] = templateConfig( variable[ k ], config );
         } );
     }
 
-    if ( typeof variable === 'string' ) {
+    if ( 'string' === typeof variable ) {
         variable = stringTemplate( variable, config );
     }
 
@@ -150,6 +141,7 @@ module.exports = {
         // find config
         const configPath = `${ process.cwd() }/wpeg.config.js`;
         if ( fs.existsSync( configPath ) ) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require
             config = require( configPath );
         }
 

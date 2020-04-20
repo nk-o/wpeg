@@ -4,12 +4,12 @@ const gulpLoadPlugins = require( 'gulp-load-plugins' );
 const named = require( 'vinyl-named-with-path' );
 const webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
-
 const browserSync = require( 'browser-sync' ).create();
+
+const webpackconfig = require( '../webpack.config' );
 
 const { getConfig } = require( './config' );
 const { log, error } = require( './notices' );
-const webpackconfig = require( '../webpack.config' );
 
 const $ = gulpLoadPlugins();
 
@@ -54,15 +54,13 @@ function plumberErrorHandler( err ) {
     this.emit( 'end' );
 }
 
-module.exports = function run( tasks = [] ) {
+module.exports = function( tasks = [] ) {
     const configs = getConfig();
 
     // run streams for each of theme items (theme and plugins)
     function runStream( func ) {
         return ( done ) => {
-            const dynamicTasks = configs.map( ( data ) => {
-                return () => func( data, done );
-            } );
+            const dynamicTasks = configs.map( ( data ) => () => func( data, done ) );
 
             gulp.series( ...dynamicTasks )( done );
         };
@@ -178,15 +176,11 @@ module.exports = function run( tasks = [] ) {
         }
 
         const patterns = Object.keys( cfg.template_files_variables )
-            .filter( ( k ) => {
-                return typeof cfg.template_files_variables[ k ] !== 'undefined';
-            } )
-            .map( ( k ) => {
-                return {
-                    match: k,
-                    replacement: cfg.template_files_variables[ k ],
-                };
-            } );
+            .filter( ( k ) => 'undefined' !== typeof cfg.template_files_variables[ k ] )
+            .map( ( k ) => ( {
+                match: k,
+                replacement: cfg.template_files_variables[ k ],
+            } ) );
 
         if ( ! patterns.length ) {
             return null;
@@ -273,39 +267,37 @@ module.exports = function run( tasks = [] ) {
 
         startTask( 'zip' );
 
-        const zipTasks = cfg.zip_files.map( ( zipData ) => {
-            return ( cb ) => {
-                let gulpSrc = gulp.src;
-                let gulpSrcUrl = zipData.src;
+        const zipTasks = cfg.zip_files.map( ( zipData ) => ( cb ) => {
+            let gulpSrc = gulp.src;
+            let gulpSrcUrl = zipData.src;
 
-                if ( zipData.src_remote ) {
-                    gulpSrc = $.remoteSrc;
-                    gulpSrcUrl = zipData.src_remote;
-                }
+            if ( zipData.src_remote ) {
+                gulpSrc = $.remoteSrc;
+                gulpSrcUrl = zipData.src_remote;
+            }
 
-                if ( ! gulpSrcUrl || ! zipData.dist ) {
-                    cb();
-                    return null;
-                }
+            if ( ! gulpSrcUrl || ! zipData.dist ) {
+                cb();
+                return null;
+            }
 
-                const pathAndName = zipData.dist.match( /^(.*)[\\\/](.*)/ );
+            const pathAndName = zipData.dist.match( /^(.*)[\\/](.*)/ );
 
-                if ( ! pathAndName || pathAndName.length !== 3 ) {
-                    cb();
-                    return null;
-                }
+            if ( ! pathAndName || 3 !== pathAndName.length ) {
+                cb();
+                return null;
+            }
 
-                const zipDist = pathAndName[ 1 ];
-                const zipName = pathAndName[ 2 ];
+            const zipDist = pathAndName[ 1 ];
+            const zipName = pathAndName[ 2 ];
 
-                return gulpSrc( gulpSrcUrl, {
-                    nodir: true,
-                    ...( zipData.src_opts || {} ),
-                } )
-                    .pipe( $.plumber( { plumberErrorHandler } ) )
-                    .pipe( $.zip( zipName ) )
-                    .pipe( gulp.dest( zipDist ) );
-            };
+            return gulpSrc( gulpSrcUrl, {
+                nodir: true,
+                ...( zipData.src_opts || {} ),
+            } )
+                .pipe( $.plumber( { plumberErrorHandler } ) )
+                .pipe( $.zip( zipName ) )
+                .pipe( gulp.dest( zipDist ) );
         } );
 
         zipTasks.push( ( cb ) => {
