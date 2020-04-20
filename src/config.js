@@ -27,16 +27,20 @@ const defaultConfig = {
     compile_scss_files_src: '',
     compile_scss_files_src_opts: {},
     compile_scss_files_dist: '{dist}',
+    compile_scss_files_compress: true,
+    compile_scss_files_rtl: false,
 
     // Compile JS files.
     compile_js_files_src: '',
     compile_js_files_src_opts: {},
     compile_js_files_dist: '{dist}',
+    compile_js_files_compress: true,
 
     // Compile JSX files.
     compile_jsx_files_src: '',
     compile_jsx_files_src_opts: {},
     compile_jsx_files_dist: '{dist}',
+    compile_jsx_files_compress: true,
 
     // Template variables that will be automatically replaced.
     template_files_src: '',

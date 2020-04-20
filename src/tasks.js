@@ -13,14 +13,13 @@ const { log, error } = require( './notices' );
 
 const $ = gulpLoadPlugins();
 
-let isDev = false;
-
 const logTexts = {
     build: 'Build',
     clean: 'Clean Dist',
     copy: 'Copy Files',
     remote_copy: 'Copy Remote Files',
     compile_scss: 'SCSS Compiler',
+    compile_scss_rtl: 'SCSS RTL Compiler',
     compile_js: 'JS Compiler',
     compile_jsx: 'JSX Compiler',
     template_files: 'Template Files',
@@ -37,11 +36,11 @@ const logHrTime = {};
 
 function startTask( name ) {
     logHrTime[ name ] = process.hrtime();
-    log( 'Starting', `${ isDev ? '[watch] ' : '' }${ logTexts[ name ] || name }` );
+    log( 'Starting', `${ logTexts[ name ] || name }` );
 }
 function endTask( name ) {
     const time = logHrTime[ name ] ? prettyHrtime( process.hrtime( logHrTime[ name ] ) ) : '';
-    log( 'Finished', `${ isDev ? '[watch] ' : '' }${ logTexts[ name ] || name }`, time );
+    log( 'Finished', `${ logTexts[ name ] || name }`, time );
 }
 
 /**
@@ -65,6 +64,9 @@ module.exports = function( tasks = [], config ) {
     log( 'Config', `***** ${ ' '.repeat( config.length ) } *****` );
     log( 'Config', `******${ '*'.repeat( config.length ) }******` );
     log( 'Config', `******${ '*'.repeat( config.length ) }******` );
+
+    // Is development.
+    const isDev = -1 !== tasks.indexOf( 'watch' );
 
     // run streams for each of theme items (theme and plugins)
     function runStream( func ) {
@@ -131,24 +133,80 @@ module.exports = function( tasks = [], config ) {
 
         return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
+
+            // Sourcemaps Init
+            .pipe( $.if( isDev, $.sourcemaps.init() ) )
+
+            // SCSS
             .pipe( $.sass( {
-                outputStyle: 'compressed',
+                outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
             } ).on( 'error', $.sass.logError ) )
-            .pipe( $.autoprefixer( {
-                autoprefixer: {
-                    // browsers: [
-                    //     'last 4 version',
-                    //     '> 1%',
-                    // ],
-                },
-            } ) )
-            .pipe( $.rename( {
+
+            // Autoprefixer
+            .pipe( $.autoprefixer() )
+
+            // Rename
+            .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
                 suffix: '.min',
-            } ) )
+            } ) ) )
+
+            // Sourcemaps
+            .pipe( $.if( isDev, $.sourcemaps.write() ) )
+
+            // Dest
             .pipe( gulp.dest( cfg.compile_scss_files_dist ) )
+
+            // Browser Sync
             .pipe( browserSync.stream() )
             .on( 'end', () => {
                 endTask( 'compile_scss' );
+            } );
+    } ) );
+
+    // compile scss rtl.
+    gulp.task( 'compile_scss_rtl', runStream( ( cfg, cb ) => {
+        if ( ! cfg.compile_scss_files_rtl || ! cfg.compile_scss_files_src || ! cfg.compile_scss_files_dist ) {
+            cb();
+            return null;
+        }
+
+        startTask( 'compile_scss_rtl' );
+
+        return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
+            .pipe( $.plumber( { plumberErrorHandler } ) )
+
+            // Sourcemaps Init
+            .pipe( $.if( isDev, $.sourcemaps.init() ) )
+
+            // SCSS
+            .pipe( $.sass( {
+                outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
+            } ).on( 'error', $.sass.logError ) )
+
+            // Autoprefixer
+            .pipe( $.autoprefixer() )
+
+            // RTL
+            .pipe( $.rtlcss() )
+
+            // Rename
+            .pipe( $.if( ! cfg.compile_scss_files_compress, $.rename( {
+                suffix: '-rtl',
+            } ) ) )
+            .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
+                suffix: '-rtl.min',
+            } ) ) )
+
+            // Sourcemaps
+            .pipe( $.if( isDev, $.sourcemaps.write() ) )
+
+            // Dest
+            .pipe( gulp.dest( cfg.compile_scss_files_dist ) )
+
+            // Browser Sync
+            .pipe( browserSync.stream() )
+            .on( 'end', () => {
+                endTask( 'compile_scss_rtl' );
             } );
     } ) );
 
@@ -164,11 +222,18 @@ module.exports = function( tasks = [], config ) {
         return gulp.src( cfg.compile_js_files_src, cfg.compile_js_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
             .pipe( named() )
+
+            // Webpack.
             .pipe( webpack( webpackconfig( isDev ) ) )
-            .pipe( $.rename( {
+
+            // Rename.
+            .pipe( $.if( cfg.compile_js_files_compress, $.rename( {
                 suffix: '.min',
-            } ) )
+            } ) ) )
+
+            // Dest
             .pipe( gulp.dest( cfg.compile_js_files_dist ) )
+
             .on( 'end', () => {
                 endTask( 'compile_js' );
             } );
@@ -186,11 +251,18 @@ module.exports = function( tasks = [], config ) {
         return gulp.src( cfg.compile_jsx_files_src, cfg.compile_jsx_files_src_opts )
             .pipe( $.plumber( { plumberErrorHandler } ) )
             .pipe( named() )
+
+            // Webpack.
             .pipe( webpack( webpackconfig( isDev ) ) )
-            .pipe( $.rename( {
+
+            // Rename.
+            .pipe( $.if( cfg.compile_jsx_files_compress, $.rename( {
                 suffix: '.min',
-            } ) )
+            } ) ) )
+
+            // Dest
             .pipe( gulp.dest( cfg.compile_jsx_files_dist ) )
+
             .on( 'end', () => {
                 endTask( 'compile_jsx' );
             } );
@@ -276,6 +348,7 @@ module.exports = function( tasks = [], config ) {
         'copy',
         'remote_copy',
         'compile_scss',
+        'compile_scss_rtl',
         'compile_js',
         'compile_jsx',
         'template_files',
@@ -360,9 +433,7 @@ module.exports = function( tasks = [], config ) {
     // watch task.
     gulp.task( 'watch', gulp.series(
         'bs_init',
-        runStream( ( cfg ) => {
-            isDev = true;
-
+        runStream( ( cfg, cb ) => {
             if ( cfg.watch_files ) {
                 startTask( 'watch_copy' );
                 gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
@@ -380,8 +451,10 @@ module.exports = function( tasks = [], config ) {
 
             if ( cfg.watch_scss_files ) {
                 startTask( 'watch_compile_scss' );
-                gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss' ) );
+                gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss', 'compile_scss_rtl' ) );
             }
+
+            cb();
         } ),
     ) );
 
