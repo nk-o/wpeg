@@ -80,7 +80,7 @@ function generateCSSComments( cont ) {
     const isset = cont.indexOf( templateStart );
     if ( -1 < isset ) {
         const rest = cont.substring( isset );
-        const reg = /\/\*-[-]*?\n([\s\S]*?)\n[ -]*?-\*\//g;
+        const reg = /\/\*[ -]-[-]*?\n([\s\S]*?)\n[ -]*?-[ -]\*\//g;
         let titles = reg.exec( rest );
         let i = 1;
         let result = '';
