@@ -17,6 +17,9 @@ module.exports = function( isDev = false ) {
                 {
                     test: /\.(jsx|js)$/i,
                     loader: 'babel-loader',
+                    options: {
+                        presets: [ '@babel/env' ],
+                    },
                 }, {
                     test: /\.scss$/,
                     use: [
