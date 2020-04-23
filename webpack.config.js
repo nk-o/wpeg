@@ -12,6 +12,7 @@ module.exports = function( isDev = false ) {
     return {
         mode: isDev ? 'development' : 'production',
         stats: 'minimal',
+        devtool: isDev ? 'inline-source-map' : false,
         module: {
             rules: [
                 {
