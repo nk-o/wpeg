@@ -19,8 +19,13 @@ cfg.src = './src';
 cfg.dist_root = './dist';
 cfg.dist = '{dist_root}/{name}';
 
+// Browser sync.
+cfg.browser_sync = {
+    proxy: '{name}.local',
+};
+
 // Template variables that will be automatically replaced.
-cfg.template_files_src = '{src}/**/*.{php,js,css}';
+cfg.template_files_src = '{dist}/**/*.{md,php,js,css,pot,json}';
 cfg.template_files_variables = {
     text_domain: pkg.name,
     plugin_version: pkg.version,
@@ -30,16 +35,32 @@ cfg.template_files_variables = {
 };
 
 // Copy files.
-cfg.copy_files_src = [ '{src}/**/*', '!{src}/**/*.{js,jsx,scss}', '{src}/**/vendor/**/*.{js,jsx,scss}' ];
+cfg.copy_files_src = [
+    '{src}/**/*',
+    '!{src}/**/*.{js,jsx,scss}',
+    '{src}/**/vendor/**/*.{js,jsx,scss}',
+];
 
 // Compile SCSS files.
-cfg.compile_scss_files_src = [ '{src}/**/*.scss', '!{src}/**/vendor/**/*' ];
+cfg.compile_scss_files_src = [
+    '{src}/**/*.scss',
+    '!{src}/**/vendor/**/*',
+];
+
+// Create additional CSS files with RTL support.
+cfg.compile_scss_files_rtl = false;
 
 // Compile JS files.
-cfg.compile_js_files_src = [ '{src}/**/*.js', '!{src}/**/vendor/**/*' ];
+cfg.compile_js_files_src = [
+    '{src}/**/*.js',
+    '!{src}/**/vendor/**/*',
+];
 
 // Compile JSX files.
-cfg.compile_jsx_files_src = [ '{src}/*assets/js/index.jsx', '{src}/*assets/admin/js/blocks.jsx' ];
+cfg.compile_jsx_files_src = [
+    '{src}/*assets/js/index.jsx',
+    '{src}/*assets/admin/js/blocks.jsx',
+];
 
 // Correct line endings files.
 cfg.correct_line_endings_files_src = '{dist}/**/*.{js,css}';
@@ -58,23 +79,25 @@ cfg.translate_php_options = {
 cfg.zip_files = [
     {
         src: '{dist}/**/*',
-        dist: '{dist_root}/lazy-blocks.zip',
+        dist: '{dist_root}/{name}.zip',
     },
 ];
 
-// Browser Sync.
-cfg.browser_sync = {
-    proxy: '{name}.local',
-    host: '{name}.local',
-    open: 'external',
-};
-
 // Watch files.
-cfg.watch_files = [ '{src}/**/*', '!{src}/**/*.{php,jsx,js,scss}' ];
+cfg.watch_files = [
+    '{src}/**/*',
+    '!{src}/**/*.{php,jsx,js,scss}',
+];
 
-cfg.watch_js_files = [ '{src}/**/*.js', '!{src}/*vendor/**/*' ];
+cfg.watch_js_files = [
+    '{src}/**/*.js',
+    '!{src}/*vendor/**/*',
+];
 
-cfg.watch_jsx_files = [ '{src}/**/*.jsx', '!{src}/*vendor/**/*' ];
+cfg.watch_jsx_files = [
+    '{src}/**/*.jsx',
+    '!{src}/*vendor/**/*',
+];
 
 cfg.watch_scss_files = '{src}/**/*.scss';
 
