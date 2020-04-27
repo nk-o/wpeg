@@ -169,7 +169,8 @@ module.exports = function( tasks = [], config ) {
 
     // remote copy to dist.
     gulp.task( 'remote_copy', runStream( 'remote_copy', ( cfg, cb ) => {
-        if ( ! cfg.remote_copy_files_src || ! cfg.remote_copy_files_dist ) {
+        // Prevent remote copy if watch enabled.
+        if ( isDev || ! cfg.remote_copy_files_src || ! cfg.remote_copy_files_dist ) {
             cb();
             return null;
         }
@@ -468,6 +469,7 @@ module.exports = function( tasks = [], config ) {
                 if ( cfg.watch_scss_files ) {
                     gulp.watch( cfg.watch_scss_files, gulp.series( 'compile_scss', 'compile_scss_rtl' ) );
                 }
+
                 cb();
             } )();
         }
