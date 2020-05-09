@@ -162,7 +162,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.copy_files_src, cfg.copy_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.copy_files_dist ) ) )
             .pipe( gulp.dest( cfg.copy_files_dist ) );
     } ) );
@@ -176,7 +176,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return $.remoteSrc( cfg.remote_copy_files_src, cfg.remote_copy_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.remote_copy_files_dist ) ) )
             .pipe( gulp.dest( cfg.remote_copy_files_dist ) );
     } ) );
@@ -189,7 +189,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
 
             // Sourcemaps Init
             .pipe( $.if( isDev, $.sourcemaps.init() ) )
@@ -228,7 +228,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
 
             // Sourcemaps Init
             .pipe( $.if( isDev, $.sourcemaps.init() ) )
@@ -273,7 +273,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.compile_js_files_src, cfg.compile_js_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( named() )
 
             // Webpack.
@@ -296,7 +296,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.compile_jsx_files_src, cfg.compile_jsx_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( named() )
 
             // Webpack.
@@ -331,7 +331,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.template_files_src ) ) )
             .pipe( $.replaceTask( {
                 patterns,
@@ -347,7 +347,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.correct_line_endings_files_src, cfg.correct_line_endings_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.correct_line_endings_files_src ) ) )
             .pipe( $.lineEndingCorrector() )
             .pipe( gulp.dest( cfg.correct_line_endings_files_dist ) );
@@ -361,7 +361,7 @@ module.exports = function( tasks = [], config ) {
         }
 
         return gulp.src( cfg.translate_php_files_src, cfg.translate_php_files_src_opts )
-            .pipe( $.plumber( { plumberErrorHandler } ) )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.sort() )
             .pipe( $.wpPot( cfg.translate_php_options ) )
             .pipe( gulp.dest( cfg.translate_php_files_dist ) );
@@ -421,7 +421,7 @@ module.exports = function( tasks = [], config ) {
                 nodir: true,
                 ...( zipData.src_opts || {} ),
             } )
-                .pipe( $.plumber( { plumberErrorHandler } ) )
+                .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
                 .pipe( $.zip( zipName ) )
                 .pipe( gulp.dest( zipDist ) );
         } );
