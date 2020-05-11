@@ -121,8 +121,8 @@ module.exports = function( tasks = [], config ) {
     // Is development.
     const isDev = -1 !== tasks.indexOf( 'watch' );
 
-    // run streams for each of theme items (theme and plugins)
-    function runStream( name, func, isParallel = true ) {
+    // run streams for each of items (theme and plugins)
+    function runStream( name, func, isParallel = false ) {
         return ( done ) => {
             const dynamicTasks = configs.map( ( data ) => ( cb ) => func( data, cb ) );
 
@@ -427,7 +427,7 @@ module.exports = function( tasks = [], config ) {
         } );
 
         return gulp.series( ...zipTasks )( done );
-    }, false ) );
+    } ) );
 
     let bsInited = false;
 
