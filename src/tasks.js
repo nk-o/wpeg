@@ -195,6 +195,9 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.if( isDev, $.sourcemaps.init() ) )
 
             // SCSS
+            .pipe( $.sassVariables( {
+                $rtl: false,
+            } ) )
             .pipe( $.sass( {
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
             } ).on( 'error', $.sass.logError ) )
@@ -234,6 +237,9 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.if( isDev, $.sourcemaps.init() ) )
 
             // SCSS
+            .pipe( $.sassVariables( {
+                $rtl: true,
+            } ) )
             .pipe( $.sass( {
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
             } ).on( 'error', $.sass.logError ) )

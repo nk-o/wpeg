@@ -45,6 +45,7 @@
     "gulp-replace-task": "^0.11.0",
     "gulp-rtlcss": "^1.4.1",
     "gulp-sass": "^4.1.0",
+    "gulp-sass-variables": "^1.2.0",
     "gulp-sort": "^2.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-wp-pot": "^2.4.3",
