@@ -105,6 +105,25 @@ function generateCSSComments( cont ) {
 }
 
 /**
+ * Replace patterns.
+ * @param cont
+ * @param patterns
+ * @returns {*}
+ */
+function replacePatterns( cont, patterns ) {
+    if ( patterns && patterns.length ) {
+        patterns.forEach( ( pattern ) => {
+            if ( pattern.match ) {
+                const matchEscaped = pattern.match.replace( /([.*+?^${}()|[\]/\\])/g, '\\$1' );
+                cont = cont.replace( new RegExp( `@@${ matchEscaped }`, 'g' ), pattern.replacement || '' );
+            }
+        } );
+    }
+
+    return cont;
+}
+
+/**
  * Error Handler for gulp-plumber
  *
  * @param {Object} err error object.
@@ -206,7 +225,11 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.autoprefixer() )
 
             // Add TOC Comments
-            .pipe( $.modifyFile( generateCSSComments ) )
+            .pipe( $.modify( {
+                fileModifier( file, contents ) {
+                    return generateCSSComments( contents );
+                },
+            } ) )
 
             // Rename
             .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
@@ -248,7 +271,11 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.autoprefixer() )
 
             // Add TOC Comments
-            .pipe( $.modifyFile( generateCSSComments ) )
+            .pipe( $.modify( {
+                fileModifier( file, contents ) {
+                    return generateCSSComments( contents );
+                },
+            } ) )
 
             // RTL
             .pipe( $.rtlcss() )
@@ -339,8 +366,10 @@ module.exports = function( tasks = [], config ) {
         return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
             .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.template_files_src ) ) )
-            .pipe( $.replaceTask( {
-                patterns,
+            .pipe( $.modify( {
+                fileModifier( file, contents ) {
+                    return replacePatterns( contents, patterns );
+                },
             } ) )
             .pipe( gulp.dest( cfg.template_files_dist ) );
     } ) );
