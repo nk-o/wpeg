@@ -225,11 +225,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.autoprefixer() )
 
             // Add TOC Comments
-            .pipe( $.modify( {
-                fileModifier( file, contents ) {
-                    return generateCSSComments( contents );
-                },
-            } ) )
+            .pipe( $.changeFileContent( generateCSSComments ) )
 
             // Rename
             .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
@@ -271,11 +267,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.autoprefixer() )
 
             // Add TOC Comments
-            .pipe( $.modify( {
-                fileModifier( file, contents ) {
-                    return generateCSSComments( contents );
-                },
-            } ) )
+            .pipe( $.changeFileContent( generateCSSComments ) )
 
             // RTL
             .pipe( $.rtlcss() )
@@ -366,11 +358,7 @@ module.exports = function( tasks = [], config ) {
         return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
             .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
             .pipe( $.if( isDev, $.changed( cfg.template_files_src ) ) )
-            .pipe( $.modify( {
-                fileModifier( file, contents ) {
-                    return replacePatterns( contents, patterns );
-                },
-            } ) )
+            .pipe( $.changeFileContent( ( content ) => replacePatterns( content, patterns ) ) )
             .pipe( gulp.dest( cfg.template_files_dist ) );
     } ) );
 
