@@ -4,7 +4,8 @@ const gulpLoadPlugins = require( 'gulp-load-plugins' );
 const named = require( 'vinyl-named-with-path' );
 const Spinnies = require( 'spinnies' );
 const chalk = require( 'chalk' );
-const webpack = require( 'webpack-stream' );
+const webpack = require( 'webpack' );
+const $webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
 const browserSync = require( 'browser-sync' ).create();
 const Fiber = require( 'fibers' );
@@ -309,7 +310,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( named() )
 
             // Webpack.
-            .pipe( webpack( webpackconfig( isDev ) ) )
+            .pipe( $webpack( webpackconfig( isDev ), webpack ) )
 
             // Rename.
             .pipe( $.if( cfg.compile_js_files_compress, $.rename( {
@@ -332,7 +333,7 @@ module.exports = function( tasks = [], config ) {
             .pipe( named() )
 
             // Webpack.
-            .pipe( webpack( webpackconfig( isDev ) ) )
+            .pipe( $webpack( webpackconfig( isDev ), webpack ) )
 
             // Rename.
             .pipe( $.if( cfg.compile_jsx_files_compress, $.rename( {
