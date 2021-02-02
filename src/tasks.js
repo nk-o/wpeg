@@ -7,6 +7,11 @@ const chalk = require( 'chalk' );
 const webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
 const browserSync = require( 'browser-sync' ).create();
+const Fiber = require( 'fibers' );
+const sass = require( 'gulp-sass' );
+
+// Use Dart Sass https://sass-lang.com/dart-sass.
+sass.compiler = require( 'sass' );
 
 const webpackconfig = require( '../webpack.config' );
 
@@ -217,9 +222,10 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.sassVariables( {
                 $rtl: false,
             } ) )
-            .pipe( $.sass( {
+            .pipe( sass( {
+                fiber: Fiber,
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
-            } ).on( 'error', $.sass.logError ) )
+            } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
             .pipe( $.autoprefixer() )
@@ -259,9 +265,10 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.sassVariables( {
                 $rtl: true,
             } ) )
-            .pipe( $.sass( {
+            .pipe( sass( {
+                fiber: Fiber,
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
-            } ).on( 'error', $.sass.logError ) )
+            } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
             .pipe( $.autoprefixer() )
