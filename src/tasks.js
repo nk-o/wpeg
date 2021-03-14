@@ -9,6 +9,8 @@ const $webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
 const browserSync = require( 'browser-sync' ).create();
 const Fiber = require( 'fibers' );
+const autoprefixer = require('autoprefixer');
+const postCssScss = require('postcss-scss');
 const sass = require( 'gulp-sass' );
 
 // Use Dart Sass https://sass-lang.com/dart-sass.
@@ -206,6 +208,27 @@ module.exports = function( tasks = [], config ) {
             .pipe( gulp.dest( cfg.remote_copy_files_dist ) );
     } ) );
 
+    // prefix scss files.
+    gulp.task( 'prefix_scss', runStream( 'prefix_scss', ( cfg, cb ) => {
+        if ( ! cfg.prefix_scss_files_src || ! cfg.prefix_scss_files_dist ) {
+            cb();
+            return null;
+        }
+
+        return gulp.src( cfg.prefix_scss_files_src, cfg.prefix_scss_files_src_opts )
+            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
+
+            // Autoprefixer
+            .pipe($.postcss([
+                autoprefixer(),
+            ], {
+                syntax: postCssScss,
+            }))
+
+            // Dest
+            .pipe( gulp.dest( cfg.prefix_scss_files_dist ) );
+    } ) );
+
     // compile scss.
     gulp.task( 'compile_scss', runStream( 'compile_scss', ( cfg, cb ) => {
         if ( ! cfg.compile_scss_files_src || ! cfg.compile_scss_files_dist ) {
@@ -229,7 +252,9 @@ module.exports = function( tasks = [], config ) {
             } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
-            .pipe( $.autoprefixer() )
+            .pipe($.postcss([
+                autoprefixer(),
+            ]))
 
             // Add TOC Comments
             .pipe( $.changeFileContent( generateCSSComments ) )
@@ -272,7 +297,9 @@ module.exports = function( tasks = [], config ) {
             } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
-            .pipe( $.autoprefixer() )
+            .pipe($.postcss([
+                autoprefixer(),
+            ]))
 
             // Add TOC Comments
             .pipe( $.changeFileContent( generateCSSComments ) )
@@ -408,6 +435,7 @@ module.exports = function( tasks = [], config ) {
         gulp.parallel( 'copy', 'remote_copy' ),
         gulp.parallel( 'compile_scss', 'compile_scss_rtl' ),
         gulp.parallel( 'compile_js', 'compile_jsx' ),
+        'prefix_scss',
         'template_files',
         'correct_line_endings',
         'translate_php',
@@ -486,7 +514,7 @@ module.exports = function( tasks = [], config ) {
         () => {
             runStream( '', ( cfg, cb ) => {
                 if ( cfg.watch_files ) {
-                    gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'bs_reload' ) );
+                    gulp.watch( cfg.watch_files, gulp.series( 'copy', 'template_files', 'correct_line_endings', 'prefix_scss', 'bs_reload' ) );
                 }
 
                 if ( cfg.watch_js_files ) {
