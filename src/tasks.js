@@ -28,6 +28,7 @@ const logTexts = {
     clean: 'Clean Dist',
     copy: 'Copy Files',
     remote_copy: 'Copy Remote Files',
+    prefix_scss: 'Prefix SCSS Files',
     compile_scss: 'SCSS Compiler',
     compile_scss_rtl: 'SCSS RTL Compiler',
     compile_js: 'JS Compiler',
