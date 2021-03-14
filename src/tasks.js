@@ -9,8 +9,8 @@ const $webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
 const browserSync = require( 'browser-sync' ).create();
 const Fiber = require( 'fibers' );
-const autoprefixer = require('autoprefixer');
-const postCssScss = require('postcss-scss');
+const autoprefixer = require( 'autoprefixer' );
+const postCssScss = require( 'postcss-scss' );
 const sass = require( 'gulp-sass' );
 
 // Use Dart Sass https://sass-lang.com/dart-sass.
@@ -219,11 +219,11 @@ module.exports = function( tasks = [], config ) {
             .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
 
             // Autoprefixer
-            .pipe($.postcss([
+            .pipe( $.postcss( [
                 autoprefixer(),
             ], {
                 syntax: postCssScss,
-            }))
+            } ) )
 
             // Dest
             .pipe( gulp.dest( cfg.prefix_scss_files_dist ) );
@@ -252,9 +252,9 @@ module.exports = function( tasks = [], config ) {
             } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
-            .pipe($.postcss([
+            .pipe( $.postcss( [
                 autoprefixer(),
-            ]))
+            ] ) )
 
             // Add TOC Comments
             .pipe( $.changeFileContent( generateCSSComments ) )
@@ -297,9 +297,9 @@ module.exports = function( tasks = [], config ) {
             } ).on( 'error', sass.logError ) )
 
             // Autoprefixer
-            .pipe($.postcss([
+            .pipe( $.postcss( [
                 autoprefixer(),
-            ]))
+            ] ) )
 
             // Add TOC Comments
             .pipe( $.changeFileContent( generateCSSComments ) )
