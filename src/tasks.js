@@ -1,43 +1,13 @@
 const gulp = require( 'gulp' );
-const del = require( 'del' );
-const gulpLoadPlugins = require( 'gulp-load-plugins' );
-const named = require( 'vinyl-named-with-path' );
 const Spinnies = require( 'spinnies' );
 const chalk = require( 'chalk' );
-const webpack = require( 'webpack' );
-const $webpack = require( 'webpack-stream' );
 const prettyHrtime = require( 'pretty-hrtime' );
 const browserSync = require( 'browser-sync' ).create();
-const Fiber = require( 'fibers' );
-const autoprefixer = require( 'autoprefixer' );
-const postCssScss = require( 'postcss-scss' );
-const sass = require( 'gulp-sass' );
 
-// Use Dart Sass https://sass-lang.com/dart-sass.
-sass.compiler = require( 'sass' );
-
-const webpackconfig = require( '../webpack.config' );
-
+// Internal data.
+const allTasks = require( './tasks/index' );
 const { getConfig } = require( './config' );
-const { time, error } = require( './notices' );
-
-const $ = gulpLoadPlugins();
-
-const logTexts = {
-    build: 'Build',
-    clean: 'Clean Dist',
-    copy: 'Copy Files',
-    remote_copy: 'Copy Remote Files',
-    prefix_scss: 'Prefix SCSS Files',
-    compile_scss: 'SCSS Compiler',
-    compile_scss_rtl: 'SCSS RTL Compiler',
-    compile_js: 'JS Compiler',
-    compile_jsx: 'JSX Compiler',
-    template_files: 'Template Files',
-    correct_line_endings: 'Correct line endings for non UNIX systems',
-    translate_php: 'Translate PHP Files',
-    zip: 'ZIP Files',
-};
+const { time } = require( './notices' );
 
 const currentLogs = {};
 const spinnies = new Spinnies( { color: 'white', succeedColor: 'white' } );
@@ -50,7 +20,7 @@ function endTask( name ) {
                 text: [
                     time(),
                     ' ',
-                    chalk.blue( logTexts[ name ] || name || '' ),
+                    chalk.blue( ( allTasks[ name ] && allTasks[ name ].label ) || name || '' ),
                     ' after ',
                     chalk.red( prettyHrtime( process.hrtime( currentLogs[ name ] ) ) ),
                 ].join( '' ),
@@ -72,75 +42,11 @@ function startTask( name ) {
             text: [
                 time(),
                 ' ',
-                chalk.blue( logTexts[ name ] || name || '' ),
+                chalk.blue( ( allTasks[ name ] && allTasks[ name ].label ) || name || '' ),
             ].join( '' ),
         }
     );
     currentLogs[ name ] = process.hrtime();
-}
-
-/**
- * Generate CSS Comments TOC.
- * @param cont
- * @returns {*}
- */
-function generateCSSComments( cont ) {
-    const templateStart = '{{table_of_contents}}';
-    const isset = cont.indexOf( templateStart );
-    if ( -1 < isset ) {
-        const rest = cont.substring( isset );
-        const reg = /\/\*[ -]-[-]*?\n([\s\S]*?)\n[ -]*?-[ -]\*\//g;
-        let titles = reg.exec( rest );
-        let i = 1;
-        let result = '';
-        while ( null !== titles ) {
-            if ( titles[ 1 ] ) {
-                const isSub = ! /\n/.test( titles[ 1 ] );
-                const str = titles[ 1 ].replace( /^\s+|\s+$/g, '' );
-                if ( ! isSub ) {
-                    result += `\n  ${ i }. `;
-                    i += 1;
-                } else {
-                    result += '\n    - ';
-                }
-                result += str;
-            }
-            titles = reg.exec( rest );
-        }
-
-        cont = cont.replace( templateStart, result );
-    }
-    return cont;
-}
-
-/**
- * Replace patterns.
- * @param cont
- * @param patterns
- * @returns {*}
- */
-function replacePatterns( cont, patterns ) {
-    if ( patterns && patterns.length ) {
-        patterns.forEach( ( pattern ) => {
-            if ( pattern.match ) {
-                const matchEscaped = pattern.match.replace( /([.*+?^${}()|[\]/\\])/g, '\\$1' );
-                cont = cont.replace( new RegExp( `@@${ matchEscaped }`, 'g' ), pattern.replacement || '' );
-            }
-        } );
-    }
-
-    return cont;
-}
-
-/**
- * Error Handler for gulp-plumber
- *
- * @param {Object} err error object.
- */
-function plumberErrorHandler( err ) {
-    // eslint-disable-next-line
-    error( err );
-    this.emit( 'end' );
 }
 
 module.exports = function( tasks = [], config ) {
@@ -152,284 +58,76 @@ module.exports = function( tasks = [], config ) {
     // run streams for each of items (theme and plugins)
     function runStream( name, func, isParallel = false ) {
         return ( done ) => {
-            const dynamicTasks = configs.map( ( data ) => ( cb ) => func( data, cb ) );
+            const dynamicTasks = [];
 
-            gulp.series(
-                ( cb ) => {
-                    if ( name ) {
-                        startTask( name );
-                    }
-                    cb();
-                },
-                gulp[ isParallel ? 'parallel' : 'series' ]( ...dynamicTasks ),
-                ( cb ) => {
-                    if ( name ) {
-                        endTask( name );
-                    }
-                    cb();
+            configs.forEach( ( data ) => {
+                if ( ! name || ! allTasks[ name ] || allTasks[ name ].isAllowed( data, isDev ) ) {
+                    dynamicTasks.push( ( cb ) => func( data, cb ) );
                 }
-            )( done );
+            } );
+
+            if ( dynamicTasks.length ) {
+                gulp.series(
+                    ( cb ) => {
+                        if ( name ) {
+                            startTask( name );
+                        }
+                        cb();
+                    },
+                    gulp[ isParallel ? 'parallel' : 'series' ]( ...dynamicTasks ),
+                    ( cb ) => {
+                        if ( name ) {
+                            endTask( name );
+                        }
+                        cb();
+                    }
+                )( done );
+            } else {
+                done();
+            }
         };
     }
 
     // clean dist folder.
-    gulp.task( 'clean', runStream( 'clean', ( cfg, cb ) => {
-        if ( ! cfg.clean_files ) {
-            cb();
-            return null;
-        }
-
-        return del( cfg.clean_files );
-    } ) );
+    gulp.task( 'clean', runStream( 'clean', allTasks.clean.fn( isDev, browserSync ) ) );
 
     // copy to dist.
-    gulp.task( 'copy', runStream( 'copy', ( cfg, cb ) => {
-        if ( ! cfg.copy_files_src || ! cfg.copy_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.copy_files_src, cfg.copy_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( $.if( isDev, $.changed( cfg.copy_files_dist ) ) )
-            .pipe( gulp.dest( cfg.copy_files_dist ) );
-    } ) );
+    gulp.task( 'copy', runStream( 'copy', allTasks.copy.fn( isDev, browserSync ) ) );
 
     // remote copy to dist.
-    gulp.task( 'remote_copy', runStream( 'remote_copy', ( cfg, cb ) => {
-        // Prevent remote copy if watch enabled.
-        if ( isDev || ! cfg.remote_copy_files_src || ! cfg.remote_copy_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return $.remoteSrc( cfg.remote_copy_files_src, cfg.remote_copy_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( $.if( isDev, $.changed( cfg.remote_copy_files_dist ) ) )
-            .pipe( gulp.dest( cfg.remote_copy_files_dist ) );
-    } ) );
+    gulp.task( 'remote_copy', runStream( 'remote_copy', allTasks.remote_copy.fn( isDev, browserSync ) ) );
 
     // prefix scss files.
-    gulp.task( 'prefix_scss', runStream( 'prefix_scss', ( cfg, cb ) => {
-        if ( ! cfg.prefix_scss_files_src || ! cfg.prefix_scss_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.prefix_scss_files_src, cfg.prefix_scss_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-
-            // Autoprefixer
-            .pipe( $.postcss( [
-                autoprefixer(),
-            ], {
-                syntax: postCssScss,
-            } ) )
-
-            // Dest
-            .pipe( gulp.dest( cfg.prefix_scss_files_dist ) );
-    } ) );
+    gulp.task( 'prefix_scss', runStream( 'prefix_scss', allTasks.prefix_scss.fn( isDev, browserSync ) ) );
 
     // compile scss.
-    gulp.task( 'compile_scss', runStream( 'compile_scss', ( cfg, cb ) => {
-        if ( ! cfg.compile_scss_files_src || ! cfg.compile_scss_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-
-            // Sourcemaps Init
-            .pipe( $.if( isDev, $.sourcemaps.init() ) )
-
-            // SCSS
-            .pipe( $.sassVariables( {
-                $rtl: false,
-            } ) )
-            .pipe( sass( {
-                fiber: Fiber,
-                outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
-            } ).on( 'error', sass.logError ) )
-
-            // Autoprefixer
-            .pipe( $.postcss( [
-                autoprefixer(),
-            ] ) )
-
-            // Add TOC Comments
-            .pipe( $.changeFileContent( generateCSSComments ) )
-
-            // Rename
-            .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
-                suffix: '.min',
-            } ) ) )
-
-            // Sourcemaps
-            .pipe( $.if( isDev, $.sourcemaps.write() ) )
-
-            // Dest
-            .pipe( gulp.dest( cfg.compile_scss_files_dist ) )
-
-            // Browser Sync
-            .pipe( browserSync.stream() );
-    } ) );
+    gulp.task( 'compile_scss', runStream( 'compile_scss', allTasks.compile_scss.fn( isDev, browserSync ) ) );
 
     // compile scss rtl.
-    gulp.task( 'compile_scss_rtl', runStream( 'compile_scss_rtl', ( cfg, cb ) => {
-        if ( ! cfg.compile_scss_files_rtl || ! cfg.compile_scss_files_src || ! cfg.compile_scss_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-
-            // Sourcemaps Init
-            .pipe( $.if( isDev, $.sourcemaps.init() ) )
-
-            // SCSS
-            .pipe( $.sassVariables( {
-                $rtl: true,
-            } ) )
-            .pipe( sass( {
-                fiber: Fiber,
-                outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
-            } ).on( 'error', sass.logError ) )
-
-            // Autoprefixer
-            .pipe( $.postcss( [
-                autoprefixer(),
-            ] ) )
-
-            // Add TOC Comments
-            .pipe( $.changeFileContent( generateCSSComments ) )
-
-            // RTL
-            .pipe( $.rtlcss() )
-
-            // Rename
-            .pipe( $.if( ! cfg.compile_scss_files_compress, $.rename( {
-                suffix: '-rtl',
-            } ) ) )
-            .pipe( $.if( cfg.compile_scss_files_compress, $.rename( {
-                suffix: '-rtl.min',
-            } ) ) )
-
-            // Sourcemaps
-            .pipe( $.if( isDev, $.sourcemaps.write() ) )
-
-            // Dest
-            .pipe( gulp.dest( cfg.compile_scss_files_dist ) )
-
-            // Browser Sync
-            .pipe( browserSync.stream() );
-    } ) );
+    gulp.task( 'compile_scss_rtl', runStream( 'compile_scss_rtl', allTasks.compile_scss_rtl.fn( isDev, browserSync ) ) );
 
     // compile js.
-    gulp.task( 'compile_js', runStream( 'compile_js', ( cfg, cb ) => {
-        if ( ! cfg.compile_js_files_src || ! cfg.compile_js_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.compile_js_files_src, cfg.compile_js_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( named() )
-
-            // Webpack.
-            .pipe( $webpack( webpackconfig( isDev ), webpack ) )
-
-            // Rename.
-            .pipe( $.if( cfg.compile_js_files_compress, $.rename( {
-                suffix: '.min',
-            } ) ) )
-
-            // Dest
-            .pipe( gulp.dest( cfg.compile_js_files_dist ) );
-    } ) );
+    gulp.task( 'compile_js', runStream( 'compile_js', allTasks.compile_js.fn( isDev, browserSync ) ) );
 
     // compile jsx.
-    gulp.task( 'compile_jsx', runStream( 'compile_jsx', ( cfg, cb ) => {
-        if ( ! cfg.compile_jsx_files_src || ! cfg.compile_jsx_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.compile_jsx_files_src, cfg.compile_jsx_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( named() )
-
-            // Webpack.
-            .pipe( $webpack( webpackconfig( isDev ), webpack ) )
-
-            // Rename.
-            .pipe( $.if( cfg.compile_jsx_files_compress, $.rename( {
-                suffix: '.min',
-            } ) ) )
-
-            // Dest
-            .pipe( gulp.dest( cfg.compile_jsx_files_dist ) );
-    } ) );
+    gulp.task( 'compile_jsx', runStream( 'compile_jsx', allTasks.compile_jsx.fn( isDev, browserSync ) ) );
 
     // template files.
-    gulp.task( 'template_files', runStream( 'template_files', ( cfg, cb ) => {
-        if ( ! cfg.template_files_src || ! cfg.template_files_dist ) {
-            cb();
-            return null;
-        }
-
-        const patterns = Object.keys( cfg.template_files_variables )
-            .filter( ( k ) => 'undefined' !== typeof cfg.template_files_variables[ k ] )
-            .map( ( k ) => ( {
-                match: k,
-                replacement: cfg.template_files_variables[ k ],
-            } ) );
-
-        if ( ! patterns.length ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.template_files_src, cfg.template_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( $.if( isDev, $.changed( cfg.template_files_src ) ) )
-            .pipe( $.changeFileContent( ( content ) => replacePatterns( content, patterns ) ) )
-            .pipe( gulp.dest( cfg.template_files_dist ) );
-    } ) );
+    gulp.task( 'template_files', runStream( 'template_files', allTasks.template_files.fn( isDev, browserSync ) ) );
 
     // correct line endings.
-    gulp.task( 'correct_line_endings', runStream( 'correct_line_endings', ( cfg, cb ) => {
-        if ( ! cfg.correct_line_endings_files_src || ! cfg.correct_line_endings_files_dist ) {
-            cb();
-            return null;
-        }
-
-        return gulp.src( cfg.correct_line_endings_files_src, cfg.correct_line_endings_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( $.if( isDev, $.changed( cfg.correct_line_endings_files_src ) ) )
-            .pipe( $.lineEndingCorrector() )
-            .pipe( gulp.dest( cfg.correct_line_endings_files_dist ) );
-    } ) );
+    gulp.task( 'correct_line_endings', runStream( 'correct_line_endings', allTasks.correct_line_endings.fn( isDev, browserSync ) ) );
 
     // translate PHP.
-    gulp.task( 'translate_php', runStream( 'translate_php', ( cfg, cb ) => {
-        if ( ! cfg.translate_php_files_src || ! cfg.translate_php_files_dist || ! cfg.translate_php_options ) {
-            cb();
-            return null;
-        }
+    gulp.task( 'translate_php', runStream( 'translate_php', allTasks.translate_php.fn( isDev, browserSync ) ) );
 
-        return gulp.src( cfg.translate_php_files_src, cfg.translate_php_files_src_opts )
-            .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-            .pipe( $.sort() )
-            .pipe( $.wpPot( cfg.translate_php_options ) )
-            .pipe( gulp.dest( cfg.translate_php_files_dist ) );
-    } ) );
+    // ZIP task.
+    gulp.task( 'zip', runStream( 'zip', allTasks.zip.fn( isDev, browserSync ) ) );
 
     // build task.
     gulp.task( 'build', gulp.series(
         ( cb ) => {
-            startTask( 'build' );
+            startTask( 'Build' );
             cb();
         },
         'clean',
@@ -441,53 +139,10 @@ module.exports = function( tasks = [], config ) {
         'correct_line_endings',
         'translate_php',
         ( cb ) => {
-            endTask( 'build' );
+            endTask( 'Build' );
             cb();
         },
     ) );
-
-    // ZIP task.
-    gulp.task( 'zip', runStream( 'zip', ( cfg, done ) => {
-        if ( ! cfg.zip_files || ! cfg.zip_files.length ) {
-            done();
-            return null;
-        }
-
-        const zipTasks = cfg.zip_files.map( ( zipData ) => ( cb ) => {
-            let gulpSrc = gulp.src;
-            let gulpSrcUrl = zipData.src;
-
-            if ( zipData.src_remote ) {
-                gulpSrc = $.remoteSrc;
-                gulpSrcUrl = zipData.src_remote;
-            }
-
-            if ( ! gulpSrcUrl || ! zipData.dist ) {
-                cb();
-                return null;
-            }
-
-            const pathAndName = zipData.dist.match( /^(.*)[\\/](.*)/ );
-
-            if ( ! pathAndName || 3 !== pathAndName.length ) {
-                cb();
-                return null;
-            }
-
-            const zipDist = pathAndName[ 1 ];
-            const zipName = pathAndName[ 2 ];
-
-            return gulpSrc( gulpSrcUrl, {
-                nodir: true,
-                ...( zipData.src_opts || {} ),
-            } )
-                .pipe( $.plumber( { errorHandler: plumberErrorHandler, inherit: isDev } ) )
-                .pipe( $.zip( zipName ) )
-                .pipe( gulp.dest( zipDist ) );
-        } );
-
-        return gulp.series( ...zipTasks )( done );
-    } ) );
 
     let bsInited = false;
 
