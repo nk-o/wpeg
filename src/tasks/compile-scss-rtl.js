@@ -1,6 +1,7 @@
 const gulp = require( 'gulp' );
 const Fiber = require( 'fibers' );
 const autoprefixer = require( 'autoprefixer' );
+const rtlcss = require( 'rtlcss' );
 const sass = require( 'gulp-sass' );
 const gulpLoadPlugins = require( 'gulp-load-plugins' );
 
@@ -33,16 +34,16 @@ module.exports = {
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
             } ).on( 'error', sass.logError ) )
 
-            // Autoprefixer
             .pipe( $.postcss( [
+                // Autoprefixer
                 autoprefixer(),
+
+                // RTL
+                rtlcss(),
             ] ) )
 
             // Add TOC Comments
             .pipe( $.changeFileContent( generateCSSComments ) )
-
-            // RTL
-            .pipe( $.rtlcss() )
 
             // Rename
             .pipe( $.if( ! cfg.compile_scss_files_compress, $.rename( {
