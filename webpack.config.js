@@ -10,6 +10,9 @@ if ( fs.existsSync( customConfigPath ) ) {
 
 module.exports = function( isDev = false ) {
     return {
+        cache: {
+            type: 'filesystem',
+        },
         mode: isDev ? 'development' : 'production',
         stats: 'minimal',
         devtool: isDev ? 'inline-source-map' : false,
@@ -20,6 +23,8 @@ module.exports = function( isDev = false ) {
                     loader: 'babel-loader',
                     options: {
                         presets: [ '@babel/env' ],
+                        cacheDirectory: true,
+                        cacheCompression: false,
                     },
                 }, {
                     test: /\.scss$/,
