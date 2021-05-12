@@ -13,7 +13,7 @@
     "wpeg": "node .bin/wpeg.js",
     "js-lint": "eslint --ext .js src/",
     "js-lint-fix": "eslint --ext .js --fix src/",
-    "postinstall": "npx simple-git-hooks"
+    "update-git-hooks": "npx simple-git-hooks"
   },
   "devDependencies": {
     "eslint-config-nk": "^0.0.20",
