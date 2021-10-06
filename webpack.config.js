@@ -15,6 +15,7 @@ module.exports = function( isDev = false ) {
         },
         mode: isDev ? 'development' : 'production',
         stats: 'minimal',
+        target: [ 'web', 'es5' ],
         devtool: isDev ? 'inline-source-map' : false,
         module: {
             rules: [
