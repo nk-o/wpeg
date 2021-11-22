@@ -1,16 +1,13 @@
 const gulp = require( 'gulp' );
-const Fiber = require( 'fibers' );
 const autoprefixer = require( 'autoprefixer' );
-const sass = require( 'gulp-sass' );
 const gulpLoadPlugins = require( 'gulp-load-plugins' );
+// Use Dart Sass https://sass-lang.com/dart-sass.
+const sass = require( 'gulp-sass' )( require( 'sass' ) );
 
 const plumberErrorHandler = require( '../plumber-error-handler' );
 const generateCSSComments = require( '../generate-css-comments' );
 
 const $ = gulpLoadPlugins();
-
-// Use Dart Sass https://sass-lang.com/dart-sass.
-sass.compiler = require( 'sass' );
 
 module.exports = {
     label: 'SCSS Compiler',
@@ -29,7 +26,6 @@ module.exports = {
                 $rtl: false,
             } ) )
             .pipe( sass( {
-                fiber: Fiber,
                 outputStyle: cfg.compile_scss_files_compress ? 'compressed' : 'expanded',
             } ).on( 'error', sass.logError ) )
 
