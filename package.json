@@ -13,12 +13,12 @@
     "wpeg": "node .bin/wpeg.js",
     "js-lint": "eslint --ext .js src/",
     "js-lint-fix": "eslint --ext .js --fix src/",
-    "update-git-hooks": "npx simple-git-hooks"
+    "prepare": "husky install"
   },
   "devDependencies": {
     "eslint-config-nk": "^0.0.20",
-    "lint-staged": "^12.1.2",
-    "simple-git-hooks": "^2.7.0"
+    "husky": "^7.0.4",
+    "lint-staged": "^12.1.2"
   },
   "dependencies": {
     "@babel/core": "^7.16.0",
