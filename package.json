@@ -16,9 +16,10 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "eslint-config-nk": "^0.0.20",
+    "eslint-config-nk": "^1.0.8",
     "husky": "^7.0.4",
-    "lint-staged": "^12.1.2"
+    "lint-staged": "^12.1.2",
+    "prettier-config-nk": "^1.0.2"
   },
   "dependencies": {
     "@babel/core": "^7.16.0",
