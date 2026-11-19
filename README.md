@@ -4,6 +4,14 @@
 
 ```$ npm install wpeg --save-dev```
 
+## Migrating from WPEG 1
+
+WPEG 2 removes remote copying. Download vendor files separately and copy local files with `copy_files_src`. Remove the `remote_copy_files_*` options from your configuration and replace ZIP entries using `src_remote` with local `src` entries.
+
+BrowserSync uses version 3. Local proxy and reload remain available. Bundled tunnels are removed, so remove `browser_sync.tunnel` before upgrading.
+
+Development CSS uses Gulp's built-in inline source maps. Production CSS keeps the same output format.
+
 ## 🤓 Prepare config
 
 WPEG works only with config in your theme/plugin directory. Create file `wpeg.config.js`. Example of file config used in our [Lazy Blocks](https://github.com/nk-o/lazy-blocks) plugins:

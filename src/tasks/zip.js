@@ -14,15 +14,7 @@ module.exports = {
     const zipTasks = cfg.zip_files.map(
       (zipData) =>
         function (cb) {
-          let gulpSrc = gulp.src;
-          let gulpSrcUrl = zipData.src;
-
-          if (zipData.src_remote) {
-            gulpSrc = $.remoteSrc;
-            gulpSrcUrl = zipData.src_remote;
-          }
-
-          if (!gulpSrcUrl || !zipData.dist) {
+          if (!zipData.src || !zipData.dist) {
             cb();
             return null;
           }
@@ -37,10 +29,11 @@ module.exports = {
           const zipDist = pathAndName[1];
           const zipName = pathAndName[2];
 
-          return gulpSrc(gulpSrcUrl, {
-            nodir: true,
-            ...(zipData.src_opts || {}),
-          })
+          return gulp
+            .src(zipData.src, {
+              nodir: true,
+              ...(zipData.src_opts || {}),
+            })
             .pipe($.plumber({ errorHandler: plumberErrorHandler, inherit: isDev }))
             .pipe($.zip(zipName))
             .pipe(gulp.dest(zipDist));

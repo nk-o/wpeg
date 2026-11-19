@@ -86,9 +86,6 @@ module.exports = function (tasks = [], config = {}) {
   // copy to dist.
   gulp.task('copy', runStream('copy', allTasks.copy.fn(isDev, browserSync)));
 
-  // remote copy to dist.
-  gulp.task('remote_copy', runStream('remote_copy', allTasks.remote_copy.fn(isDev, browserSync)));
-
   // prefix scss files.
   gulp.task('prefix_scss', runStream('prefix_scss', allTasks.prefix_scss.fn(isDev, browserSync)));
 
@@ -140,7 +137,7 @@ module.exports = function (tasks = [], config = {}) {
         cb();
       },
       'clean',
-      gulp.parallel('copy', 'remote_copy'),
+      'copy',
       gulp.parallel('compile_scss', 'compile_scss_rtl'),
       gulp.parallel('compile_js', 'compile_jsx'),
       'prefix_scss',
