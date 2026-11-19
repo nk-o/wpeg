@@ -18,11 +18,6 @@ const defaultConfig = {
   copy_files_src_opts: { nodir: true },
   copy_files_dist: '{dist}',
 
-  // Copy Remote files.
-  remote_copy_files_src: '',
-  remote_copy_files_src_opts: { nodir: true },
-  remote_copy_files_dist: '{dist}',
-
   // Prefix SCSS files.
   prefix_scss_files_src: '',
   prefix_scss_files_src_opts: {},
@@ -182,6 +177,19 @@ module.exports = {
       if (fs.existsSync(configPath)) {
         // eslint-disable-next-line global-require, import/no-dynamic-require
         config = require(configPath);
+      }
+
+      if (
+        Object.keys(config).some((key) => key.startsWith('remote_copy_files_')) ||
+        (config.zip_files || []).some((zipData) => 'src_remote' in zipData)
+      ) {
+        throw new Error(
+          'Remote copying was removed in WPEG 2. Use copy_files_src for local files.'
+        );
+      }
+
+      if (config.browser_sync && config.browser_sync.tunnel) {
+        throw new Error('BrowserSync tunnels are no longer bundled in WPEG 2. Use a local proxy.');
       }
 
       configs.push(

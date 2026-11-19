@@ -16,11 +16,8 @@ module.exports = {
   },
   fn: (isDev, browserSync) => (cfg) =>
     gulp
-      .src(cfg.compile_scss_files_src, cfg.compile_scss_files_src_opts)
+      .src(cfg.compile_scss_files_src, { ...cfg.compile_scss_files_src_opts, sourcemaps: isDev })
       .pipe($.plumber({ errorHandler: plumberErrorHandler, inherit: isDev }))
-
-      // Sourcemaps Init
-      .pipe($.if(isDev, $.sourcemaps.init()))
 
       // SCSS
       .pipe(
@@ -50,11 +47,8 @@ module.exports = {
         )
       )
 
-      // Sourcemaps
-      .pipe($.if(isDev, $.sourcemaps.write()))
-
       // Dest
-      .pipe(gulp.dest(cfg.compile_scss_files_dist))
+      .pipe(gulp.dest(cfg.compile_scss_files_dist, { sourcemaps: isDev }))
 
       // Browser Sync
       .pipe(browserSync.stream()),
