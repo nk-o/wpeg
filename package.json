@@ -13,6 +13,7 @@
     "wpeg": "node .bin/wpeg.js",
     "js-lint": "eslint --ext .js src/",
     "js-lint-fix": "eslint --ext .js --fix src/",
+    "test": "node --test",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -31,7 +32,7 @@
     "chalk": "^4.1.2",
     "css-loader": "^6.8.1",
     "del": "^6.1.1",
-    "gulp": "^4.0.2",
+    "gulp": "^5.0.1",
     "gulp-change-file-content": "^1.0.1",
     "gulp-changed": "^4.0.3",
     "gulp-if": "^3.0.0",
